@@ -1,0 +1,23 @@
+sudo: required
+
+services: 
+  - docker
+before-install:
+  - docker build -t rajk07/client-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true rajk07/client-test npm run test
+
+after_success: 
+  - docker build -t rajk07/multi-client ./client
+  - docker build -t rajk07/multi-server ./server
+  - docker build -t rajk07/multi-nginx ./nginx
+  - docker build -t rajk07/multi-worker ./worker
+  #Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  #Push images to docker hub 
+  - docker push rajk07/multi-client
+  - docker push rajk07/multi-server
+  - docker push rajk07/multi-nginx
+  - docker push rajk07/multi-worker
